@@ -10,6 +10,8 @@ import Cocoa
 import AVFoundation
 import Ikemen
 import NorthLayout
+import CoreGraphics
+import AppKit
 
 class MovieOverviewControl: NSView {
     let player: AVPlayer
@@ -26,7 +28,7 @@ class MovieOverviewControl: NSView {
         tf.isBezeled = false
         tf.isEditable = false
         tf.drawsBackground = true
-        tf.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: NSFontWeightRegular)
+        tf.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: NSFont.Weight.regular)
         tf.textColor = NSColor.white
         tf.backgroundColor = NSColor.black
     }
@@ -54,7 +56,6 @@ class MovieOverviewControl: NSView {
         return mouseDownLocation != nil
     }
 
-
     var shouldUpdateScopeRange: ((_ newValue: CMTimeRange?) -> Bool)?
     var onScopeChange: (() -> Void)?
     fileprivate lazy var scopeMaskLeftView: NSView = NSView(frame: NSZeroRect) ※ { v in
@@ -75,7 +76,7 @@ class MovieOverviewControl: NSView {
 
     init(player: AVPlayer, playerItem: AVPlayerItem) {
         self.player = player
-        self.trimRange = CMTimeRange(start: kCMTimeZero, duration: playerItem.duration)
+        self.trimRange = CMTimeRange(start: CMTime.zero, duration: playerItem.duration)
         
         super.init(frame: NSZeroRect)
 
@@ -85,8 +86,8 @@ class MovieOverviewControl: NSView {
         autolayout("H:|[currentTime]")
         autolayout("V:[currentTime]|")
 
-        setContentCompressionResistancePriority(NSLayoutPriorityDefaultHigh, for: .vertical)
-        setContentHuggingPriority(NSLayoutPriorityDefaultHigh, for: .vertical)
+        setContentCompressionResistancePriority(NSLayoutConstraint.Priority.defaultHigh, for: .vertical)
+        setContentHuggingPriority(NSLayoutConstraint.Priority.defaultHigh, for: .vertical)
 
         // subviews ordering
         addSubview(scopeMaskLeftView)
@@ -218,8 +219,8 @@ class MovieOverviewControl: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         NSColor.black.setFill()
-        NSRectFillUsingOperation(dirtyRect, .copy)
-
+        // TODO: fixit
+//        NSRectFillUsingOperation(dirtyRect, .copy)
         var x: CGFloat = 0
         for t in thumbnails {
             let pageRect = NSRect(x: x, y: 0, width: bounds.height / t.size.height * t.size.width, height: bounds.height)
@@ -263,7 +264,7 @@ class MovieOverviewControl: NSView {
     fileprivate func seekToMousePosition(_ theEvent: NSEvent) {
         let p = convert(theEvent.locationInWindow, from: nil)
         let time = CMTimeAdd(CMTime(value: Int64(CGFloat(trimRange.duration.value) * p.x / bounds.width), timescale: trimRange.duration.timescale), trimRange.start)
-        player.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+        player.seek(to: time, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
     }
 
     fileprivate func scopeToMousePosition(_ theEvent: NSEvent) {
@@ -273,8 +274,8 @@ class MovieOverviewControl: NSView {
         let p = convert(theEvent.locationInWindow, from: nil)
 
         let distance = Int32(p.x - mouseDownLocation.x)
-        let start = CMTimeAdd(s.start, CMTimeMultiply(minFrameDuration, distance))
-        let end = CMTimeAdd(s.end, CMTimeMultiply(minFrameDuration, distance))
+        let start = CMTimeAdd(s.start, CMTimeMultiply(minFrameDuration, multiplier: distance))
+        let end = CMTimeAdd(s.end, CMTimeMultiply(minFrameDuration, multiplier: distance))
         let newScopeRange = CMTimeRange(start: start, end: end)
 
         if shouldUpdateScopeRange?(newScopeRange) == true {

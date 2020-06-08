@@ -5,4 +5,3 @@ target 'LoveLiver-osx' do
     pod 'NorthLayout'
     pod '※ikemen'
 end
-

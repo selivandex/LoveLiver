@@ -9,7 +9,7 @@
 import Cocoa
 import AVFoundation
 import Ikemen
-
+import AppKit
 
 class MovieDocument: NSDocument, NSWindowDelegate {
     var player: AVPlayer?
@@ -29,7 +29,10 @@ class MovieDocument: NSDocument, NSWindowDelegate {
 
     override func makeWindowControllers() {
         mainVC = MovieDocumentViewController(movieURL: fileURL!, playerItem: playerItem!, player: player!)
-        mainVC?.createLivePhotoAction = {[weak self] in self?.openLivePhotoSandbox()}
+
+        mainVC?.createLivePhotoAction = { [weak self] in
+            self?.openLivePhotoSandbox()
+        }
         mainWindow = NSWindow(contentViewController: mainVC!) ※ { w in
             w.delegate = self
         }
@@ -58,7 +61,7 @@ class MovieDocument: NSDocument, NSWindowDelegate {
         overviewVC = MovieOverviewViewController(player: player!, playerItem: playerItem!)
         overviewWindow = NSWindow(contentViewController: overviewVC!) ※ { w in
             w.delegate = self
-            w.styleMask = NSResizableWindowMask
+            w.styleMask = .resizable
         }
         addWindowController(NSWindowController(window: overviewWindow))
         mainWindow!.addChildWindow(overviewWindow!, ordered: .above)
